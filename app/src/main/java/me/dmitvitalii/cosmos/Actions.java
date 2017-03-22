@@ -14,14 +14,9 @@ public interface Actions {
     String MARS = "mars";
     String NEXT = "next";
     String MORE = "more";
-
-    int EPIC_ID = 0;
-    int APOD_ID = 1;
-    int MARS_ID = 2;
-    int NEXT_ID = 3;
-    int MORE_ID = 4;
+    String TAP  = "tap";
 
     String[] ACTIONS = new String[]{
-            EPIC, APOD, MARS, NEXT, MORE
+            EPIC, APOD, MARS, NEXT, MORE, TAP
     };
 }

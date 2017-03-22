@@ -4,7 +4,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.view.View;
 import android.widget.RemoteViews;
+
+import java.lang.ref.SoftReference;
 
 /**
  * @author Vitalii Dmitriev
@@ -12,21 +15,24 @@ import android.widget.RemoteViews;
  */
 public class RemoteViewsBuilder {
 
-    private Context mContext;
+    private SoftReference<Context> mContextReference;
     private int mLayoutId;
-    private PendingIntent mPendingIntent;
+    private PendingIntent mIntent;
     private int mViewId;
     private int mColor;
     private Bitmap mBitmap;
+    private int mVisibility = View.VISIBLE;
 
     private RemoteViewsBuilder(Context context) {
-        mContext = context;
+        mContextReference = new SoftReference<>(context);
     }
-
-    private RemoteViewsBuilder() { /* NOP */ }
 
     public static RemoteViewsBuilder with(Context context) {
         return new RemoteViewsBuilder(context);
+    }
+
+    public int getViewId() {
+        return mViewId;
     }
 
     public RemoteViewsBuilder layout(int layoutId) {
@@ -39,11 +45,15 @@ public class RemoteViewsBuilder {
         return this;
     }
 
+    public RemoteViewsBuilder visible(boolean visible) {
+        mVisibility = visible ? View.VISIBLE : View.GONE;
+        return this;
+    }
+
     public RemoteViewsBuilder action(String action) {
-        Intent intent = new Intent(mContext, EpdWidget.class).setAction(action);
-        mPendingIntent = PendingIntent.getBroadcast(
-                mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-        );
+        Context ctx = mContextReference.get();
+        Intent intent = new Intent(ctx, CosmoService.class).setAction(action);
+        mIntent = PendingIntent.getService(ctx, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return this;
     }
 
@@ -58,8 +68,10 @@ public class RemoteViewsBuilder {
     }
 
     public RemoteViews build() {
-        RemoteViews widget = new RemoteViews(mContext.getPackageName(), mLayoutId);
-        widget.setOnClickPendingIntent(mViewId, mPendingIntent);
+        Context ctx = mContextReference.get();
+        RemoteViews widget = new RemoteViews(ctx.getPackageName(), mLayoutId);
+        widget.setViewVisibility(mViewId, mVisibility);
+        widget.setOnClickPendingIntent(mViewId, mIntent);
         if (null != mBitmap) {
             widget.setImageViewBitmap(mViewId, mBitmap);
         } else if (0 != mColor) {
