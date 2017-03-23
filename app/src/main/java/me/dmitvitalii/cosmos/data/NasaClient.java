@@ -21,13 +21,9 @@ public interface NasaClient {
     // TODO: 3/13/17 ? to an appropriate POJO.
 
     String NASA_URL_FULL = "https://api.nasa.gov/planetary/apod?api_key=";
-    String NASA_API_PARAM = "api_key=";
-    String THE_API_KEY = "YjGpSfvOMBERYKXnPYu8kQ8RZ0KEogMltFAZWpSQ";
-    String DEBUG_KEY = "V0dAtCaQwM7LlPlposq5ie8r5MdcAJXkVRyjcLl9";
-    String DEMO_KEY = "DEMO_KEY";
-    String ANOTHER_KEY = "bLa2cZjiB5UgM47n3yzFfDqjuDJ9hDLxqxMSFNGG";
-    String OTHER_KEY = "TPeMTZCqZmRIgKBMeuPXTTvXAbCErrFRJUEkbb0o";
+    String OTHER_KEY = "DEMO_KEY";
 
+    String NASA_API_PARAM = "api_key=";
     String API = "api";
     String CONTENT_TYPE_JSON = "Content-Type: application/json";
     String CONTENT_TYPE_IMAGE = "Content-Type: image/png; charset=binary";

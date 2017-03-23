@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.os.Debug;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;

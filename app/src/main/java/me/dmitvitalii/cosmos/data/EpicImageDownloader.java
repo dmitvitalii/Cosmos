@@ -4,8 +4,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import java.util.Random;
-
 import me.dmitvitalii.cosmos.data.entities.Earth;
 import okhttp3.ResponseBody;
 import retrofit2.Call;

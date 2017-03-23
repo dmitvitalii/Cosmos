@@ -18,15 +18,14 @@ public class EpicDownloader implements Downloader<List<Earth>> {
 
     @SuppressWarnings("unused")
     private static final String TAG = EpicDownloader.class.getSimpleName();
-    private Retrofit mRetrofit;
     private NasaClient mClient;
 
     public EpicDownloader() {
-        mRetrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(NasaClient.EPIC_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(new Gson()))
                 .build();
-        mClient = mRetrofit.create(NasaClient.class);
+        mClient = retrofit.create(NasaClient.class);
     }
 
 
