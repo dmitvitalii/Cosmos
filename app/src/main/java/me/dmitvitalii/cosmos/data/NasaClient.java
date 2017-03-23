@@ -4,6 +4,7 @@ import java.util.List;
 
 import me.dmitvitalii.cosmos.data.entities.Apod;
 import me.dmitvitalii.cosmos.data.entities.Earth;
+import me.dmitvitalii.cosmos.data.entities.MarsData;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -18,12 +19,13 @@ import retrofit2.http.Url;
  * @author Vitalii Dmitriev
  */
 public interface NasaClient {
-    // TODO: 3/13/17 ? to an appropriate POJO.
 
     String NASA_URL_FULL = "https://api.nasa.gov/planetary/apod?api_key=";
     String OTHER_KEY = "DEMO_KEY";
 
     String NASA_API_PARAM = "api_key=";
+    String CURIOSITY = "curiosity";
+    String OPPORTUNITY = "opportunity";
     String API = "api";
     String CONTENT_TYPE_JSON = "Content-Type: application/json";
     String CONTENT_TYPE_IMAGE = "Content-Type: image/png; charset=binary";
@@ -48,16 +50,9 @@ public interface NasaClient {
     String EARTH_PHOTO_TYPE = NATURAL;
 
     @Headers(CONTENT_TYPE_JSON)
-    @GET("/" + MARS + "/" + API + "/" + VERSION + "/" + ROVERS + "/curiosity/" + PHOTOS)
-    Call<String> marsCuriosity(
-            @Query("sol") int sol,
-            @Query("camera") String camera,
-            @Query(API_KEY) String apiKey
-    );
-
-    @Headers(CONTENT_TYPE_JSON)
-    @GET("/" + MARS + "/" + API + "/" + VERSION + "/" + ROVERS + "/opportunity/" + PHOTOS)
-    Call<String> marsOpportunity(
+    @GET("/" + MARS + "/" + API + "/" + VERSION + "/" + ROVERS + "/{rover}/" + PHOTOS)
+    Call<MarsData> marsRover(
+            @Path("rover") String rover,
             @Query("sol") int sol,
             @Query("camera") String camera,
             @Query(API_KEY) String apiKey
@@ -70,7 +65,7 @@ public interface NasaClient {
     );
 
     @GET
-    Call<ResponseBody> apodImage(
+    Call<ResponseBody> rawImage(
             @Url String url,
             @Query(API_KEY) String apiKey
     );

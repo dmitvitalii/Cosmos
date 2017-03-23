@@ -19,19 +19,20 @@ import java.util.Map;
 import java.util.Random;
 
 import me.dmitvitalii.cosmos.data.ApodDownloader;
-import me.dmitvitalii.cosmos.data.ApodImageDownloader;
 import me.dmitvitalii.cosmos.data.Downloader;
 import me.dmitvitalii.cosmos.data.EpicDownloader;
 import me.dmitvitalii.cosmos.data.EpicImageDownloader;
+import me.dmitvitalii.cosmos.data.ImageDownloader;
+import me.dmitvitalii.cosmos.data.MarsDownloader;
 import me.dmitvitalii.cosmos.data.NasaClient;
 import me.dmitvitalii.cosmos.data.entities.Apod;
 import me.dmitvitalii.cosmos.data.entities.Earth;
+import me.dmitvitalii.cosmos.data.entities.MarsData;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static android.text.TextUtils.isEmpty;
 import static me.dmitvitalii.cosmos.Actions.APOD;
 import static me.dmitvitalii.cosmos.Actions.EPIC;
 import static me.dmitvitalii.cosmos.Actions.MARS;
@@ -44,10 +45,10 @@ public class CosmoService extends IntentService {
     @SuppressWarnings("unused")
     private static final String TAG = CosmoService.class.getSimpleName();
     private static final String EMPTY = "";
-    private static final String EPIC_IMAGE = "jk.dfhasfrhjklsgjflgsfdjgjkls";
     private static final Map<String, Downloader> DOWNLOADERS = new ArrayMap<>();
     private static final Map<String, Callback> CALLBACKS = new ArrayMap<>();
-    private static final String APOD_IMAGE = "asdfada";
+    private static final String EPIC_IMAGE = "epici";
+    private static final String IMAGE = "image";
     private Random mRandom = new Random();
     private ComponentName mWidgetComponentName;
     private AppWidgetManager mWidgetManager;
@@ -70,13 +71,14 @@ public class CosmoService extends IntentService {
         DOWNLOADERS.put(EPIC, new EpicDownloader());
         DOWNLOADERS.put(EPIC_IMAGE, new EpicImageDownloader());
         DOWNLOADERS.put(APOD, new ApodDownloader());
-        DOWNLOADERS.put(APOD_IMAGE, new ApodImageDownloader());
-//        DOWNLOADERS.put(MARS, );
+        DOWNLOADERS.put(IMAGE, new ImageDownloader());
+        DOWNLOADERS.put(MARS, new MarsDownloader());
 
         CALLBACKS.put(EPIC, new EpicCallback());
         CALLBACKS.put(EPIC_IMAGE, new EpicImageCallback());
         CALLBACKS.put(APOD, new ApodCallback());
-        CALLBACKS.put(APOD_IMAGE, new ApodImageCallback());
+        CALLBACKS.put(IMAGE, new ImageCallback());
+        CALLBACKS.put(MARS, new MarsCallback());
     }
 
     private void updateWidgets(int[] ids, RemoteViewsBuilder... builders) {
@@ -101,7 +103,6 @@ public class CosmoService extends IntentService {
         if (null == action) action = EMPTY;
         Log.d(TAG, "onHandleIntent: " + action);
         int[] ids = mWidgetManager.getAppWidgetIds(mWidgetComponentName);
-        String savedAction = action;
         String prefAction = PreferenceUtil.getChosen(this);
         switch (action) {
             case EPIC:
@@ -109,11 +110,8 @@ public class CosmoService extends IntentService {
             case APOD:
                 selectProject(action);
                 updateButtons(action, ids);
-                savedAction = action;
             case NEXT:
-                savedAction = isEmpty(savedAction) ? prefAction : savedAction;
-                Log.d(TAG, "onHandleIntent: action " + savedAction + ", pref action " + prefAction);
-                DOWNLOADERS.get(savedAction).download(CALLBACKS.get(savedAction));
+                DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
                 break;
             case MORE:
                 showDetails(intent);
@@ -122,10 +120,8 @@ public class CosmoService extends IntentService {
                 showControls(ids, toggleShow());
                 break;
             default:
-                Log.d(TAG, "onHandleIntent: action " + savedAction + ", pref action " + prefAction);
                 updateAll(PreferenceUtil.isVisible(this), ids);
-                savedAction = isEmpty(savedAction) ? PreferenceUtil.getChosen(this) : savedAction;
-                DOWNLOADERS.get(savedAction).download(CALLBACKS.get(savedAction));
+                DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
         }
     }
 
@@ -148,7 +144,7 @@ public class CosmoService extends IntentService {
 
     private void updateAll(boolean buttonsVisible, int[] ids) {
         int layout = R.layout.epd_layout_fullscreen;
-        // TODO: 3/22/17 refactor, get rid of copypasted code, but don't overengineer.
+        // TODO: 3/23/17 make one builder for all views and one layout. Too many redundant builders.
         RemoteViewsBuilder left = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .visible(buttonsVisible)
@@ -188,8 +184,7 @@ public class CosmoService extends IntentService {
         RemoteViewsBuilder builder = RemoteViewsBuilder.with(this)
                 .layout(R.layout.epd_layout_fullscreen)
                 .action(action)
-                .textColor(android.R.color.white)
-                /*.bitmap(mDownloader.download(action))*/;
+                .textColor(android.R.color.white);
         for (int id : ids) {
             mWidgetManager.updateAppWidget(id, builder.build());
         }
@@ -273,7 +268,7 @@ public class CosmoService extends IntentService {
         public void onResponse(Call<Apod> call, Response<Apod> response) {
             Apod apod = response.body();
             if (null != apod) {
-                DOWNLOADERS.get(APOD_IMAGE).download(CALLBACKS.get(APOD_IMAGE), apod.url);
+                DOWNLOADERS.get(IMAGE).download(CALLBACKS.get(IMAGE), apod.url);
             }
         }
 
@@ -283,7 +278,7 @@ public class CosmoService extends IntentService {
         }
     }
 
-    private class ApodImageCallback implements Callback<ResponseBody> {
+    private class ImageCallback implements Callback<ResponseBody> {
 
         private byte mAttempts = 5;
 
@@ -310,4 +305,22 @@ public class CosmoService extends IntentService {
         }
     }
 
+    private class MarsCallback implements Callback<MarsData> {
+
+        @Override
+        public void onResponse(Call<MarsData> call, Response<MarsData> response) {
+            MarsData mars = response.body();
+            if (null != mars) {
+                DOWNLOADERS.get(IMAGE).download(
+                        CALLBACKS.get(IMAGE),
+                        mars.photos.get(mRandom.nextInt(mars.photos.size())).img_src // sorry.
+                );
+            }
+        }
+
+        @Override
+        public void onFailure(Call<MarsData> call, Throwable t) {
+
+        }
+    }
 }
