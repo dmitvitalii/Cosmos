@@ -103,7 +103,7 @@ public class CosmoService extends IntentService {
         if (null == action) action = EMPTY;
         Log.d(TAG, "onHandleIntent: " + action);
         int[] ids = mWidgetManager.getAppWidgetIds(mWidgetComponentName);
-        String prefAction = PreferenceUtil.getChosen(this);
+        String prefAction;
         switch (action) {
             case EPIC:
             case MARS:
@@ -111,6 +111,7 @@ public class CosmoService extends IntentService {
                 selectProject(action);
                 updateButtons(action, ids);
             case NEXT:
+                prefAction = PreferenceUtil.getChosen(this);
                 DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
                 break;
             case MORE:
@@ -120,6 +121,7 @@ public class CosmoService extends IntentService {
                 showControls(ids, toggleShow());
                 break;
             default:
+                prefAction = PreferenceUtil.getChosen(this);
                 updateAll(PreferenceUtil.isVisible(this), ids);
                 DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
         }
