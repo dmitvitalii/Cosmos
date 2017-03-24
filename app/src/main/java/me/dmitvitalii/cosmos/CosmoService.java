@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.PowerManager;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
@@ -49,12 +51,15 @@ public class CosmoService extends IntentService {
     private static final Map<String, Callback> CALLBACKS = new ArrayMap<>();
     private static final String EPIC_IMAGE = "epici";
     private static final String IMAGE = "image";
+    private static final int DELAY = 1000;
     private Random mRandom = new Random();
     private ComponentName mWidgetComponentName;
     private AppWidgetManager mWidgetManager;
+    private PowerManager mPowerManager;
+    private PowerManager.WakeLock mWakeLock;
 
     /**
-     * Creates an IntentService.  Invoked by your subclass's constructor.
+     * Creates an IntentService. Invoked by your subclass's constructor.
      * Calls super(String) with the name of the worker thread, important only for debugging.
      */
     public CosmoService() {
@@ -99,6 +104,7 @@ public class CosmoService extends IntentService {
 
     @Override
     public void onHandleIntent(Intent intent) {
+        acquireWakeLock();
         String action = null == intent ? EMPTY : intent.getAction();
         if (null == action) action = EMPTY;
         Log.d(TAG, "onHandleIntent: " + action);
@@ -125,10 +131,29 @@ public class CosmoService extends IntentService {
                 updateAll(PreferenceUtil.isVisible(this), ids);
                 DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
         }
+        releaseWakeLock();
+    }
+
+    private void acquireWakeLock() {
+        if (null == mPowerManager) {
+            mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        }
+        if (null == mWakeLock) {
+            mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        }
+        mWakeLock.acquire();
+    }
+
+    private void releaseWakeLock() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mWakeLock.release();
+            }
+        }, DELAY);
     }
 
     private void showControls(int[] ids, boolean show) {
-        // TODO: 3/22/17 ughh...
         RemoteViews widget = new RemoteViews(getPackageName(), R.layout.epd_layout_fullscreen);
         widget.setViewVisibility(R.id.epd_full_top_start, show ? View.VISIBLE : View.GONE);
         widget.setViewVisibility(R.id.epd_full_top_middle, show ? View.VISIBLE : View.GONE);
@@ -218,6 +243,7 @@ public class CosmoService extends IntentService {
 
         @Override
         public void onResponse(Call<List<Earth>> call, Response<List<Earth>> response) {
+            acquireWakeLock();
             List<Earth> result = response.body();
             int randomPicId = mRandom.nextInt(result.size());
             Log.d(TAG, "download: " + result.get(randomPicId).toString());
@@ -230,6 +256,7 @@ public class CosmoService extends IntentService {
                     NasaClient.JPG,
                     e.image
             );
+            releaseWakeLock();
         }
 
         @Override
@@ -244,6 +271,7 @@ public class CosmoService extends IntentService {
 
         @Override
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            acquireWakeLock();
             ResponseBody body = response.body();
             if (null != body) {
                 Bitmap bitmap = BitmapFactory.decodeStream(body.byteStream());
@@ -257,6 +285,7 @@ public class CosmoService extends IntentService {
                     --mAttempts;
                 }
             }
+            releaseWakeLock();
         }
 
         @Override
@@ -268,10 +297,12 @@ public class CosmoService extends IntentService {
     private class ApodCallback implements Callback<Apod> {
         @Override
         public void onResponse(Call<Apod> call, Response<Apod> response) {
+            acquireWakeLock();
             Apod apod = response.body();
             if (null != apod) {
                 DOWNLOADERS.get(IMAGE).download(CALLBACKS.get(IMAGE), apod.url);
             }
+            releaseWakeLock();
         }
 
         @Override
@@ -286,6 +317,7 @@ public class CosmoService extends IntentService {
 
         @Override
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            acquireWakeLock();
             ResponseBody body = response.body();
             if (null != body) {
                 Bitmap bitmap = BitmapFactory.decodeStream(body.byteStream());
@@ -299,6 +331,7 @@ public class CosmoService extends IntentService {
                     --mAttempts;
                 }
             }
+            releaseWakeLock();
         }
 
         @Override
@@ -311,6 +344,7 @@ public class CosmoService extends IntentService {
 
         @Override
         public void onResponse(Call<MarsData> call, Response<MarsData> response) {
+            acquireWakeLock();
             MarsData mars = response.body();
             if (null != mars) {
                 DOWNLOADERS.get(IMAGE).download(
@@ -318,6 +352,7 @@ public class CosmoService extends IntentService {
                         mars.photos.get(mRandom.nextInt(mars.photos.size())).img_src // sorry.
                 );
             }
+            releaseWakeLock();
         }
 
         @Override
