@@ -6,6 +6,6 @@
     <dimen name="epd_button_padding">24dp</dimen>
     <dimen name="epd_button_stroke">2dp</dimen>
     <dimen name="epd_button_bottom_margin">40dp</dimen>
-    <dimen name="epd_button_top_margin">22dp</dimen>
+    <dimen name="epd_button_top_margin">18dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
 </resources>

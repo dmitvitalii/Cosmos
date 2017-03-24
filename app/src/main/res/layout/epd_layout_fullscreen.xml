@@ -52,7 +52,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="@dimen/epd_button_top_margin"
+        android:layout_marginTop="@dimen/epd_button_top_margin"
         android:padding="@dimen/epd_button_padding"
         android:text="@string/mars"
         android:textAllCaps="true"
