@@ -186,34 +186,45 @@ public class CosmoService extends IntentService {
         return result;
     }
 
+    /**
+     * A very slow method, which updates all views.
+     *
+     * @param buttonsVisible whether buttons must be hidden or not.
+     * @param ids            all widget's ids.
+     */
     private void updateAll(boolean buttonsVisible, int[] ids) {
         int layout = R.layout.epd_layout_fullscreen;
         // TODO: 3/23/17 make one builder for all views and one layout. Too many redundant builders.
+        String prefAction = PreferenceUtil.getChosen(this);
+        int colorInactive = MARS.equals(prefAction) ? Color.BLACK : Color.WHITE;
+        int colorActive = MARS.equals(prefAction) ? Color.DKGRAY : Color.GRAY;
         RemoteViewsBuilder left = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .visible(buttonsVisible)
                 .action(EPIC)
-                .textColor(PreferenceUtil.isChosen(this, EPIC) ? Color.GRAY : Color.WHITE)
+                .textColor(EPIC.equals(prefAction) ? colorActive : colorInactive)
                 .view(R.id.epd_full_top_start);
         RemoteViewsBuilder middle = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .visible(buttonsVisible)
                 .action(MARS)
-                .textColor(PreferenceUtil.isChosen(this, MARS) ? Color.GRAY : Color.WHITE)
+                .textColor(MARS.equals(prefAction) ? colorActive : colorInactive)
                 .view(R.id.epd_full_top_middle);
         RemoteViewsBuilder right = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .action(APOD)
                 .visible(buttonsVisible)
-                .textColor(PreferenceUtil.isChosen(this, APOD) ? Color.GRAY : Color.WHITE)
+                .textColor(APOD.equals(prefAction) ? colorActive : colorInactive)
                 .view(R.id.epd_full_top_end);
         RemoteViewsBuilder bottomLeft = RemoteViewsBuilder.with(this)
                 .layout(layout)
+                .textColor(colorInactive)
                 .visible(buttonsVisible)
                 .action(NEXT)
                 .view(R.id.epd_full_bottom_start);
         RemoteViewsBuilder bottomRight = RemoteViewsBuilder.with(this)
                 .layout(layout)
+                .textColor(colorInactive)
                 .visible(buttonsVisible)
                 .action(MORE)
                 .view(R.id.epd_full_bottom_end);
@@ -227,22 +238,36 @@ public class CosmoService extends IntentService {
 
     private void updateButtons(String action, int... ids) {
         int layout = R.layout.epd_layout_fullscreen;
+        int colorInactive = MARS.equals(action) ? Color.BLACK : Color.WHITE;
+        int colorActive = MARS.equals(action) ? Color.DKGRAY : Color.GRAY;
+        // TODO: 3/23/17 make one builder for all views and one layout. Too many redundant builders.
         RemoteViewsBuilder left = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .action(EPIC)
-                .textColor(EPIC.equals(action) ? Color.GRAY : Color.WHITE)
+                .textColor(EPIC.equals(action) ? colorActive : colorInactive)
                 .view(R.id.epd_full_top_start);
         RemoteViewsBuilder middle = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .action(MARS)
-                .textColor(MARS.equals(action) ? Color.GRAY : Color.WHITE)
+                .textColor(MARS.equals(action) ? colorActive : colorInactive)
                 .view(R.id.epd_full_top_middle);
         RemoteViewsBuilder right = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .action(APOD)
-                .textColor(APOD.equals(action) ? Color.GRAY : Color.WHITE)
+                .textColor(APOD.equals(action) ? colorActive : colorInactive)
                 .view(R.id.epd_full_top_end);
-        updateWidgets(ids, left, middle, right);
+        RemoteViewsBuilder bottomLeft = RemoteViewsBuilder.with(this)
+                .layout(layout)
+                .textColor(colorInactive)
+                .action(NEXT)
+                .view(R.id.epd_full_bottom_start);
+        RemoteViewsBuilder bottomRight = RemoteViewsBuilder.with(this)
+                .layout(layout)
+                .textColor(colorInactive)
+                .action(MORE)
+                .view(R.id.epd_full_bottom_end);
+        // TODO: 3/23/17 make one builder for all views and one layout. Too many redundant builders.
+        updateWidgets(ids, left, middle, right, bottomRight);
     }
 
     private void showDetails(Intent intent) {
