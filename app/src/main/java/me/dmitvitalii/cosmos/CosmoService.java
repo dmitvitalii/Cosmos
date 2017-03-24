@@ -221,6 +221,7 @@ public class CosmoService extends IntentService {
                 .layout(layout)
                 .action(TAP)
                 .view(R.id.epd_full_background);
+        // TODO: 3/23/17 make one builder for all views and one layout. Too many redundant builders.
         updateWidgets(ids, left, middle, right, bottomLeft, bottomRight, image);
     }
 
