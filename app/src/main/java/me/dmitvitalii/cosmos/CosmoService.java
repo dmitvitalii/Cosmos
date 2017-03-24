@@ -152,7 +152,7 @@ public class CosmoService extends IntentService {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                mWakeLock.release();
+                if (mWakeLock.isHeld()) mWakeLock.release();
             }
         }, DELAY);
     }
