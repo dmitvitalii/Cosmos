@@ -1,6 +1,7 @@
 package me.dmitvitalii.cosmos;
 
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import com.yotadevices.sdk.Epd;
 import com.yotadevices.sdk.EpdIntentCompat;
 
 import java.util.List;
@@ -141,7 +143,9 @@ public class CosmoService extends IntentService {
         if (null == mWakeLock) {
             mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         }
-        mWakeLock.acquire();
+        if (!mWakeLock.isHeld()) {
+            mWakeLock.acquire();
+        }
     }
 
     private void releaseWakeLock() {
@@ -224,12 +228,13 @@ public class CosmoService extends IntentService {
     }
 
     private void updateImage(Bitmap bitmap, int... ids) {
-        RemoteViewsBuilder imageBuilder = RemoteViewsBuilder.with(this)
-                .layout(R.layout.epd_layout_fullscreen)
-                .action(TAP)
-                .view(R.id.epd_full_background)
-                .bitmap(bitmap);
-        updateWidgets(ids, imageBuilder);
+        RemoteViews widget = new RemoteViews(getPackageName(), R.layout.epd_layout_fullscreen);
+        Intent intent = new Intent(this, CosmoService.class).setAction(TAP);
+        widget.setOnClickPendingIntent(R.id.epd_full_background,
+                PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+        widget.setImageViewBitmap(R.id.epd_full_background, bitmap);
+        Epd.fullUpdate(widget, R.id.epd_full_background);
+        updateWidgets(ids, widget);
     }
 
     private void selectProject(String action) {
