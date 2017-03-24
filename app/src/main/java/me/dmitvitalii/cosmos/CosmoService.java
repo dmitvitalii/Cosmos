@@ -120,7 +120,8 @@ public class CosmoService extends IntentService {
                 updateButtons(action, ids);
             case NEXT:
                 prefAction = PreferenceUtil.getChosen(this);
-                DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
+                setLoading(true, ids);
+                loadImage(prefAction);
                 break;
             case MORE:
                 showDetails(intent);
@@ -131,9 +132,21 @@ public class CosmoService extends IntentService {
             default:
                 prefAction = PreferenceUtil.getChosen(this);
                 updateAll(PreferenceUtil.isVisible(this), ids);
-                DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
+                setLoading(true, ids);
+                loadImage(prefAction);
         }
         releaseWakeLock();
+    }
+
+    private void setLoading(boolean loading, int... ids) {
+        RemoteViews widget = new RemoteViews(getPackageName(), R.layout.epd_layout_fullscreen);
+        widget.setTextViewText(R.id.epd_full_bottom_start,
+                getString(loading ? R.string.loading : R.string.next));
+        updateWidgets(ids, widget);
+    }
+
+    private void loadImage(String prefAction) {
+        DOWNLOADERS.get(prefAction).download(CALLBACKS.get(prefAction));
     }
 
     private void acquireWakeLock() {
@@ -186,13 +199,13 @@ public class CosmoService extends IntentService {
                 .layout(layout)
                 .visible(buttonsVisible)
                 .action(MARS)
-                .textColor(PreferenceUtil.isChosen(this, APOD) ? Color.GRAY : Color.WHITE)
+                .textColor(PreferenceUtil.isChosen(this, MARS) ? Color.GRAY : Color.WHITE)
                 .view(R.id.epd_full_top_middle);
         RemoteViewsBuilder right = RemoteViewsBuilder.with(this)
                 .layout(layout)
                 .action(APOD)
                 .visible(buttonsVisible)
-                .textColor(PreferenceUtil.isChosen(this, MARS) ? Color.GRAY : Color.WHITE)
+                .textColor(PreferenceUtil.isChosen(this, APOD) ? Color.GRAY : Color.WHITE)
                 .view(R.id.epd_full_top_end);
         RemoteViewsBuilder bottomLeft = RemoteViewsBuilder.with(this)
                 .layout(layout)
@@ -212,13 +225,23 @@ public class CosmoService extends IntentService {
     }
 
     private void updateButtons(String action, int... ids) {
-        RemoteViewsBuilder builder = RemoteViewsBuilder.with(this)
-                .layout(R.layout.epd_layout_fullscreen)
-                .action(action)
-                .textColor(android.R.color.white);
-        for (int id : ids) {
-            mWidgetManager.updateAppWidget(id, builder.build());
-        }
+        int layout = R.layout.epd_layout_fullscreen;
+        RemoteViewsBuilder left = RemoteViewsBuilder.with(this)
+                .layout(layout)
+                .action(EPIC)
+                .textColor(EPIC.equals(action) ? Color.GRAY : Color.WHITE)
+                .view(R.id.epd_full_top_start);
+        RemoteViewsBuilder middle = RemoteViewsBuilder.with(this)
+                .layout(layout)
+                .action(MARS)
+                .textColor(MARS.equals(action) ? Color.GRAY : Color.WHITE)
+                .view(R.id.epd_full_top_middle);
+        RemoteViewsBuilder right = RemoteViewsBuilder.with(this)
+                .layout(layout)
+                .action(APOD)
+                .textColor(APOD.equals(action) ? Color.GRAY : Color.WHITE)
+                .view(R.id.epd_full_top_end);
+        updateWidgets(ids, left, middle, right);
     }
 
     private void showDetails(Intent intent) {
@@ -283,6 +306,7 @@ public class CosmoService extends IntentService {
                 int[] ids = mWidgetManager.getAppWidgetIds(mWidgetComponentName);
                 if (null != bitmap) {
                     updateImage(bitmap, ids);
+                    setLoading(false, ids);
                 }
             } else {
                 if (mAttempts > 0) {
@@ -328,6 +352,7 @@ public class CosmoService extends IntentService {
                 Bitmap bitmap = BitmapFactory.decodeStream(body.byteStream());
                 int[] ids = mWidgetManager.getAppWidgetIds(mWidgetComponentName);
                 if (null != bitmap) {
+                    setLoading(false, ids);
                     updateImage(bitmap, ids);
                 }
             } else {
