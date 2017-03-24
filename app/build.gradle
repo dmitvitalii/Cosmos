@@ -35,5 +35,5 @@ dependencies {
     compile "com.squareup.okhttp3:okhttp:${okHttpVersion}"
 
     // YotaPhone dependencies
-    provided        "com.yotadevices.libs.internal:sdk:3.7.14"
+    provided "com.yotadevices.libs.internal:sdk:3.7.14"
 }
