@@ -23,4 +23,5 @@
     android:resizeMode="none"
     android:updatePeriodMillis="0"
     android:widgetCategory=""
+    android:configure="me.dmitvitalii.cosmos.SettingsActivity"
     tools:ignore="UnusedAttribute"/>

@@ -12,7 +12,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <uses-library
             android:name="com.yotadevices.sdk"
             android:required="true"/>
@@ -35,12 +34,15 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/epd_fullscreen_main_info"/>
-
             <meta-data
                 android:name="com.yotadevices.epd_provider"
                 android:resource="@xml/epd_fullscreen_info"/>
         </receiver>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings">
+        </activity>
     </application>
 
 </manifest>
